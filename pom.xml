@@ -62,7 +62,7 @@
         <spring-kafka.version>4.0.0</spring-kafka.version>
 
         <!-- 分布式任务 -->
-        <xxl-job.version>2.4.1</xxl-job.version>
+        <xxl-job.version>3.2.0</xxl-job.version>
 
         <!-- 安全 -->
         <jjwt.version>0.12.6</jjwt.version>
