@@ -6,8 +6,8 @@
 
 `lingzhi-event` 提供事件驱动能力：
 
-- **ApplicationEvent** - 事件定义
-- **@EventListener** - 事件监听
+- **@EventPublish** - 发布事件
+- **@EventListener** - 监听事件
 - **TransactionEvent** - 事务事件
 
 ## 快速开始
@@ -24,49 +24,26 @@
 
 ## 使用方式
 
-### 定义事件
-
-```java
-public class UserRegisterEvent extends ApplicationEvent {
-    
-    private final Long userId;
-    private final String username;
-    
-    public UserRegisterEvent(Object source, Long userId, String username) {
-        super(source);
-        this.userId = userId;
-        this.username = username;
-    }
-}
-```
-
-### 发布事件
+### @EventPublish - 发布事件
 
 ```java
 @Service
 public class UserService {
 
-    @Autowired
-    private ApplicationEventPublisher publisher;
-
+    @EventPublish(eventClass = UserRegisterEvent.class)
     public void register(User user) {
         userMapper.insert(user);
-        
-        // 发布事件
-        publisher.publishEvent(
-            new UserRegisterEvent(this, user.getId(), user.getUsername())
-        );
     }
 }
 ```
 
-### 监听事件
+### @EventListener - 监听事件
 
 ```java
 @Component
 public class UserEventListener {
 
-    @EventListener
+    @EventListener(eventClass = UserRegisterEvent.class)
     public void handleUserRegister(UserRegisterEvent event) {
         // 发送欢迎邮件
         log.info("用户注册: {}", event.getUsername());
@@ -74,14 +51,30 @@ public class UserEventListener {
 }
 ```
 
-### 事务事件
+## 注解属性
 
-```java
-@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-public void handleAfterCommit(UserRegisterEvent event) {
-    // 事务提交后执行
-}
-```
+### @EventPublish
+
+| 属性 | 说明 |
+|------|------|
+| eventClass | 事件类 |
+| source | 事件源 |
+| params | 事件参数，支持 SpEL |
+
+### @EventListener
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| eventClass | 监听的事件类 | - |
+| phase | 事务阶段：BEFORE_COMMIT/AFTER_COMMIT/AFTER_ROLLBACK | AFTER_COMMIT |
+
+## 事务阶段
+
+| 阶段 | 说明 |
+|------|------|
+| BEFORE_COMMIT | 事务提交前 |
+| AFTER_COMMIT | 事务提交后 |
+| AFTER_ROLLBACK | 事务回滚后 |
 
 ## 依赖
 

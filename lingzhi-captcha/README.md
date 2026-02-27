@@ -6,9 +6,9 @@
 
 `lingzhi-captcha` 提供验证码能力：
 
+- **@CaptchaGenerate** - 生成验证码
+- **@CaptchaValidate** - 校验验证码
 - **图片验证码** - 字符验证码
-- **算术验证码** - 简单算术题
-- **滑动验证码** - 滑动拼图
 
 ## 快速开始
 
@@ -24,34 +24,46 @@
 
 ## 使用方式
 
-### 生成验证码
+### @CaptchaGenerate - 生成验证码
 
 ```java
-@Service
-public class CaptchaService {
-
-    @Autowired
-    private CaptchaService captchaService;
-
-    public CaptchaResult generate() {
-        // 生成验证码图片
-        CaptchaImageIO image = captchaService.getImage();
-        
-        return new CaptchaResult(
-            image.getImageBase64(),  // Base64 图片
-            image.getCacheKey()      // 缓存 key
-        );
-    }
+@CaptchaGenerate(key = "#request.phone", type = "sms")
+@GetMapping("/captcha")
+public Result<CaptchaResult> generate(@RequestBody CaptchaRequest request) {
+    // 返回验证码结果
+    return Result.success(captchaResult);
 }
 ```
 
-### 验证验证码
+### @CaptchaValidate - 校验验证码
 
 ```java
-public boolean verify(String cacheKey, String code) {
-    return captchaService.verify(cacheKey, code);
+@CaptchaValidate(key = "#phone")
+@PostMapping("/verify")
+public Result<Void> verify(@RequestParam String phone, @RequestParam String code) {
+    return Result.success();
 }
 ```
+
+## 注解属性
+
+### @CaptchaGenerate
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| key | 验证码 key，支持 SpEL | - |
+| type | 验证码类型：image/sms/email | image |
+| expire | 过期时间(秒) | 300 |
+| length | 长度 | 4 |
+
+### @CaptchaValidate
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| key | 验证码 key，支持 SpEL | - |
+| code | 验证码参数名 | code |
+| required | 是否必需 | true |
+| message | 错误消息 | 验证码错误 |
 
 ## 依赖
 

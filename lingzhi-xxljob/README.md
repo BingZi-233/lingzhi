@@ -6,9 +6,8 @@
 
 `lingzhi-xxljob` 提供分布式任务能力：
 
+- **@XxlJobHandler** - XXL-Job 任务注解
 - **XXL-Job** - 分布式任务调度
-- **执行器** - 任务执行器
-- **JobHandler** - 任务处理器
 
 ## 快速开始
 
@@ -38,21 +37,58 @@ xxl:
 
 ## 使用方式
 
-### 定义 JobHandler
+### @XxlJobHandler - 定义任务
 
 ```java
 @Component
 public class SampleJobHandler {
 
-    @XxlJob("demoJobHandler")
+    @XxlJobHandler("demoJob")
     public ReturnT<String> execute(String params) {
         XxlJobLogger.log("XXL-JOB, Hello World.");
         return ReturnT.SUCCESS;
     }
+    
+    @XxlJobHandler(
+        value = "customJob",
+        description = "自定义任务",
+        init = "init",
+        destroy = "destroy"
+    )
+    public ReturnT<String> customJob(String params) {
+        return ReturnT.SUCCESS;
+    }
+    
+    public void init() {
+        // 任务初始化
+    }
+    
+    public void destroy() {
+        // 任务销毁
+    }
 }
 ```
 
-### 任务类型
+## 注解属性
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| value | 任务名称 | - |
+| description | 任务描述 | - |
+| init | 初始化方法 | - |
+| destroy | 销毁方法 | - |
+
+## 返回值
+
+```java
+// 成功
+return ReturnT.SUCCESS;
+
+// 失败
+return ReturnT.FAIL;
+```
+
+## 任务类型
 
 | 类型 | 说明 |
 |------|------|

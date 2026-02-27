@@ -6,6 +6,7 @@
 
 `lingzhi-lock` 提供分布式锁能力：
 
+- **@Lock 注解** - 分布式锁注解
 - **Redis 锁** - 基于 Redisson
 - **可重入** - 同一线程可重复获取
 - **自动续期** - 防止提前过期
@@ -24,14 +25,20 @@
 
 ## 使用方式
 
-### 注解式
+### @Lock 注解
 
 ```java
 @Service
 public class OrderService {
 
-    @Lock(keys = "'order:' + #orderId")
+    @Lock(key = "'order:' + #orderId")
     public void processOrder(Long orderId) {
+        // 业务逻辑
+    }
+    
+    // 等待5秒获取锁，持有30秒
+    @Lock(key = "'order:' + #orderId", waitTime = 5, leaseTime = 30)
+    public void processOrderWithWait(Long orderId) {
         // 业务逻辑
     }
 }
@@ -56,16 +63,6 @@ public class LockService {
             lock.unlock();
         }
     }
-    
-    // 带过期时间
-    public void doWithLock(String lockKey, long time) {
-        RLock lock = redissonClient.getLock(lockKey);
-        try {
-            lock.lock(time, TimeUnit.SECONDS);
-        } finally {
-            lock.unlock();
-        }
-    }
 }
 ```
 
@@ -73,9 +70,10 @@ public class LockService {
 
 | 属性 | 说明 | 默认值 |
 |------|------|--------|
-| keys | 锁的 key | - |
-| expire | 过期时间(秒) | 30 |
+| key | 锁的 key，支持 SpEL | - |
+| prefix | 锁前缀 | lock |
 | waitTime | 等待时间(秒) | 0 |
+| leaseTime | 持有锁时间(秒) | 30 |
 
 ## 依赖
 

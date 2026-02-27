@@ -1,14 +1,14 @@
 # lingzhi-mq 消息队列模块
 
-> RabbitMQ、Kafka 封装
+> RabbitMQ、Kafka
 
 ## 模块简介
 
 `lingzhi-mq` 提供消息队列能力：
 
+- **@MqProducer** - 消息生产者
+- **@MqConsumer** - 消息消费者
 - **RabbitMQ** - 可靠消息
-- **Kafka** - 高吞吐消息
-- **消息监听** - @RabbitListener
 
 ## 快速开始
 
@@ -34,49 +34,65 @@ spring:
     password: guest
 ```
 
-## 使用方式
+## 注解
 
-### 发送消息
+### @MqProducer - 消息生产者
 
 ```java
 @Service
 public class OrderService {
 
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
-
-    public void createOrder(Order order) {
-        // 发送消息
-        rabbitTemplate.convertAndSend(
-            "order.exchange",    // 交换机
-            "order.create",       // routingKey
-            order                 // 消息内容
-        );
+    @MqProducer(topic = "order-created", tag = "new")
+    public void sendOrderCreated(Order order) {
+        // 消息自动发送
     }
 }
 ```
 
-### 接收消息
+### @MqConsumer - 消息消费者
 
 ```java
 @Component
 public class OrderListener {
 
-    @RabbitListener(queues = "order.queue")
-    public void handleOrder(Order order) {
+    @MqConsumer(topic = "order-created", tag = "new", group = "order-group")
+    public void handleOrderCreated(Message msg) {
         // 处理消息
     }
 }
 ```
 
-### 消息确认
+## 注解属性
 
-```yaml
-spring:
-  rabbitmq:
-    publisher-confirm-type: correlated
-    publisher-returns: true
-```
+### @MqProducer
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| topic | 消息 topic | - |
+| tag | 消息 tag | - |
+| keys | 消息 keys | - |
+| delayLevel | 延迟等级：1-18 | 0 |
+
+### @MqConsumer
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| topic | 消息 topic | - |
+| tag | 消息 tag，* 表示所有 | * |
+| group | 消费者组 | - |
+| consumeThreadMin | 并发数 | 1 |
+| consumeThreadMax | 最大并发数 | 1 |
+
+## 延迟等级
+
+| 等级 | 延迟 |
+|------|------|
+| 1 | 1秒 |
+| 2 | 5秒 |
+| 3 | 10秒 |
+| 4 | 30秒 |
+| 5 | 1分钟 |
+| ... | ... |
 
 ## 依赖
 

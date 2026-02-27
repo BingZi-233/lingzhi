@@ -7,9 +7,10 @@
 `lingzhi-security` 提供安全认证相关能力：
 
 - **JWT 认证** - Token 生成和验证
-- **Spring Security** - 权限控制
-- **用户认证** - 登录、登出
-- **权限注解** - 方法级权限控制
+- **@RequiresPermissions** - 权限注解
+- **@RequiresRoles** - 角色注解
+- **@Anonymous** - 匿名访问
+- **SecurityContext** - 安全上下文
 
 ## 快速开始
 
@@ -33,99 +34,89 @@ lingzhi:
       expiration: 3600000
 ```
 
-## 使用方式
+## 注解
 
-### 登录
+### @RequiresPermissions - 权限校验
 
 ```java
-@RestController
-public class AuthController {
+@RequiresPermissions("user:add")
+@PostMapping("/user")
+public Result<Void> addUser() {
+    return Result.success();
+}
 
-    @PostMapping("/login")
-    public Result<LoginResponse> login(@RequestBody LoginRequest request) {
-        // 验证用户名密码
-        User user = userService.login(request.getUsername(), request.getPassword());
-        
-        // 生成 Token
-        String token = jwtUtil.generateToken(user.getId());
-        
-        return Result.success(new LoginResponse(token, user));
-    }
+// 多个权限
+@RequiresPermissions({"user:add", "user:edit"})
+@PostMapping("/user")
+public Result<Void> addUser() {
+    return Result.success();
 }
 ```
 
-### 获取当前用户
+### @RequiresRoles - 角色校验
 
 ```java
-@Service
-public class UserService {
+@RequiresRoles("admin")
+@GetMapping("/admin")
+public Result<Void> admin() {
+    return Result.success();
+}
 
-    public Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return (Long) auth.getPrincipal();
-    }
+// 全部角色
+@RequiresRoles(value = {"admin", "manager"}, mode = Mode.ALL)
+@GetMapping("/admin")
+public Result<Void> admin() {
+    return Result.success();
+}
+
+// 任一角色
+@RequiresRoles(value = {"admin", "manager"}, mode = Mode.ANY)
+@GetMapping("/admin")
+public Result<Void> admin() {
+    return Result.success();
 }
 ```
 
-### 权限控制
+### @Anonymous - 匿名访问
 
 ```java
-// 接口级别
-@RestController
-@RequestMapping("/api/admin")
-public class AdminController {
-
-    @PreAuthorize("hasAuthority('admin')")
-    @GetMapping("/users")
-    public Result<List<User>> listUsers() {
-        return Result.success(userService.list());
-    }
-
-    @PreAuthorize("hasRole('admin')")
-    @DeleteMapping("/user/{id}")
-    public Result<Void> deleteUser(@PathVariable Long id) {
-        return Result.success();
-    }
+@Anonymous
+@PostMapping("/login")
+public Result<LoginResponse> login() {
+    return Result.success();
 }
 ```
 
-### 注解说明
-
-| 注解 | 说明 |
-|------|------|
-| @PreAuthorize | 方法执行前权限校验 |
-| @PostAuthorize | 方法执行后权限校验 |
-| @Secured | 角色校验 |
-| @RolesAllowed | 角色校验 |
-
-## JWT Token
-
-### 包含信息
-
-```json
-{
-  "sub": "1234567890",
-  "username": "admin",
-  "roles": ["admin", "user"],
-  "iat": 1516239022,
-  "exp": 1516242622
-}
-```
-
-### 验证
+## 安全上下文
 
 ```java
-public boolean validateToken(String token) {
-    try {
-        Jwts.parserBuilder()
-            .setSigningKey(secret)
-            .build()
-            .parseClaimsJws(token);
-        return true;
-    } catch (JwtException e) {
-        return false;
-    }
-}
+// 获取当前用户ID
+Long userId = SecurityContext.getUserId();
+
+// 获取当前用户名
+String username = SecurityContext.getUsername();
+
+// 判断是否已登录
+boolean authenticated = SecurityContext.isAuthenticated();
+```
+
+## JWT 工具类
+
+```java
+@Autowired
+private JwtUtils jwtUtils;
+
+// 生成 Token
+String token = jwtUtils.generateToken(userId, username);
+
+// 验证 Token
+boolean valid = jwtUtils.validateToken(token);
+
+// 获取用户ID
+Long userId = jwtUtils.getUserId(token);
+
+// 刷新 Token
+String newToken = jwtUtils.refreshToken(token);
 ```
 
 ## 配置项
@@ -142,8 +133,25 @@ lingzhi:
       urls: /api/auth/**,/api/public/**
 ```
 
+## 注解属性
+
+### @RequiresPermissions
+
+| 属性 | 说明 |
+|------|------|
+| value | 权限标识数组 |
+| permissions | 权限表达式数组 |
+
+### @RequiresRoles
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| value | 角色数组 | - |
+| mode | 验证模式：ALL/ANY | ALL |
+
 ## 依赖
 
 - lingzhi-core
+- lingzhi-common
 - spring-boot-starter-security
 - jjwt-api

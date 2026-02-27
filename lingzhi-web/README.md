@@ -1,11 +1,12 @@
 # lingzhi-web Web 模块
 
-> 参数校验、分页、CORS、基础 Controller
+> 参数校验、分页、CORS、基础 Controller、租户注解
 
 ## 模块简介
 
 `lingzhi-web` 提供 Web 开发常用能力：
 
+- **@Tenant** - 多租户注解
 - **参数校验** - @Valid 注解式校验
 - **分页** - 通用分页请求/响应
 - **CORS** - 跨域配置
@@ -21,6 +22,26 @@
     <artifactId>lingzhi-web</artifactId>
     <version>1.0.0</version>
 </dependency>
+```
+
+## 注解
+
+### @Tenant - 多租户
+
+```java
+// 启用租户过滤
+@Tenant
+@GetMapping("/users")
+public Result<List<User>> listUsers() {
+    return Result.success(userService.list());
+}
+
+// 忽略租户过滤
+@Tenant(ignore = true)
+@GetMapping("/users")
+public Result<List<User>> listUsers() {
+    return Result.success(userService.list());
+}
 ```
 
 ## 分页
@@ -169,6 +190,7 @@ lingzhi:
 ## 依赖
 
 - lingzhi-core
+- lingzhi-common
 - lingzhi-db
 - spring-boot-starter-web
 - hibernate-validator

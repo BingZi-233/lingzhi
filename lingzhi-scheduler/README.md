@@ -6,9 +6,8 @@
 
 `lingzhi-scheduler` 提供定时任务能力：
 
-- **@Scheduled** - 注解式定时任务
-- **动态任务** - 运行时管理任务
-- **任务执行器** - 线程池执行
+- **@Scheduler** - 定时任务注解
+- **@Scheduled** - Spring 原生注解
 
 ## 快速开始
 
@@ -24,41 +23,34 @@
 
 ## 使用方式
 
-### 固定频率
+### @Scheduler - 定时任务
 
 ```java
-@Scheduled(fixedRate = 5000)  // 每5秒执行一次
-public void task1() {
-    // 
+@Service
+public class ScheduledTask {
+
+    @Scheduler(cron = "0 0 2 * * ?", description = "清理缓存")
+    public void cleanCache() {
+        // 每天凌晨2点执行
+    }
+    
+    @Scheduler(fixedRate = 5000, description = "同步数据")
+    public void syncData() {
+        // 每5秒执行一次
+    }
 }
 ```
 
-### 固定延迟
+## 注解属性
 
-```java
-@Scheduled(fixedDelay = 5000)  // 上次执行完5秒后执行
-public void task2() {
-    //
-}
-```
-
-### Cron 表达式
-
-```java
-@Scheduled(cron = "0 0 2 * * ?")  // 每天凌晨2点
-public void task3() {
-    //
-}
-```
-
-### 初始延迟
-
-```java
-@Scheduled(initialDelay = 10000, fixedRate = 5000)  // 首次延迟10秒
-public void task4() {
-    //
-}
-```
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| cron | Cron 表达式 | - |
+| fixedRate | 固定频率(毫秒) | -1 |
+| fixedDelay | 固定延迟(毫秒) | -1 |
+| initialDelay | 初始延迟(毫秒) | -1 |
+| description | 任务描述 | - |
+| group | 任务分组 | default |
 
 ## Cron 表达式
 

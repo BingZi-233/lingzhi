@@ -34,33 +34,23 @@ spring:
       database: 0
 ```
 
-## 使用方式
+## 缓存注解
 
-### 注解缓存
+### @Cachable - 缓存读取
 
 ```java
-@Service
-public class UserService {
+@Cachable(key = "'user:' + #id", expire = 3600)
+public User getUser(Long id) {
+    return userMapper.selectById(id);
+}
+```
 
-    @Cacheable(value = "user", key = "#id")
-    public User getUser(Long id) {
-        return userMapper.selectById(id);
-    }
+### @CacheEvict - 缓存清除
 
-    @CachePut(value = "user", key = "#user.id")
-    public User updateUser(User user) {
-        userMapper.updateById(user);
-        return user;
-    }
-
-    @CacheEvict(value = "user", key = "#id")
-    public void deleteUser(Long id) {
-        userMapper.deleteById(id);
-    }
-
-    @CacheEvict(value = "user", allEntries = true)
-    public void clearCache() {
-    }
+```java
+@CacheEvict(key = "'user:' + #id")
+public void deleteUser(Long id) {
+    userMapper.deleteById(id);
 }
 ```
 

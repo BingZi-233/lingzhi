@@ -6,9 +6,10 @@
 
 `lingzhi-api` 提供 API 文档能力：
 
+- **@IgnoreResponse** - 忽略统一响应包装
+- **@ApiVersion** - API 版本控制
+- **@ApiDoc** - API 文档扩展
 - **Knife4j** - 美观的 API 文档
-- **OpenAPI 3.0** - 标准 API 规范
-- **Swagger UI** - 在线调试
 
 ## 快速开始
 
@@ -28,9 +29,63 @@
 http://localhost:8080/doc.html
 ```
 
-## 使用方式
+## 注解
 
-### 注解说明
+### @IgnoreResponse - 忽略统一响应包装
+
+```java
+@IgnoreResponse
+@GetMapping("/health")
+public Health health() {
+    return Health.up();
+}
+```
+
+### @ApiVersion - API 版本控制
+
+```java
+@ApiVersion("v2")
+@GetMapping("/users")
+public Result<List<User>> listUsers() {
+    return Result.success(userService.list());
+}
+```
+
+### @ApiDoc - API 文档扩展
+
+```java
+@ApiDoc(
+    title = "用户查询",
+    description = "根据条件查询用户列表",
+    category = "用户管理",
+    order = 1
+)
+@GetMapping("/users")
+public Result<List<User>> listUsers() {
+    return Result.success(userService.list());
+}
+```
+
+## 注解说明
+
+### @ApiVersion
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| value | API 版本 | v1 |
+| description | 版本描述 | - |
+
+### @ApiDoc
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| title | 接口标题 | - |
+| description | 接口描述 | - |
+| category | 接口分类 | - |
+| order | 排序 | 0 |
+| deprecated | 是否废弃 | false |
+
+## 使用示例
 
 ```java
 @Api(tags = "用户管理")
@@ -39,13 +94,18 @@ http://localhost:8080/doc.html
 public class UserController {
 
     @ApiOperation("获取用户详情")
-    @ApiParam(name = "id", type = "Long", required = true, example = "1")
+    @ApiVersion("v2")
     @GetMapping("/{id}")
     public Result<User> getUser(@PathVariable Long id) {
         return Result.success(userService.getById(id));
     }
 
     @ApiOperation("创建用户")
+    @ApiDoc(
+        title = "创建用户",
+        description = "创建一个新用户",
+        category = "用户管理"
+    )
     @PostMapping
     public Result<Void> createUser(@Valid @RequestBody UserRequest request) {
         return Result.success();
@@ -53,19 +113,7 @@ public class UserController {
 }
 ```
 
-### 请求/响应注解
-
-| 注解 | 说明 |
-|------|------|
-| @Api | Controller 描述 |
-| @ApiOperation | 方法描述 |
-| @ApiParam | 参数描述 |
-| @ApiModel | 实体类描述 |
-| @ApiModelProperty | 字段描述 |
-| @ApiImplicitParams | 多个参数 |
-| @ApiResponses | 响应列表 |
-
-### 常用配置
+## 常用配置
 
 ```yaml
 springdoc:
