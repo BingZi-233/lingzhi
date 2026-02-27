@@ -1,6 +1,6 @@
 # lingzhi-db 数据库模块
 
-> MyBatis Plus、分布式ID、乐观锁
+> MyBatis Plus、分布式ID、乐观锁、多数据源
 
 ## 模块简介
 
@@ -10,6 +10,7 @@
 - **多数据源** - 动态数据源切换
 - **分布式ID** - 雪花算法 ID 生成
 - **乐观锁** - 字段版本控制
+- **自动填充** - 创建时间、更新时间等
 
 ## 快速开始
 
@@ -36,6 +37,7 @@ spring:
           url: jdbc:mysql://localhost:3306/test
           username: root
           password: root
+          driver-class-name: com.mysql.cj.jdbc.Driver
         slave:
           url: jdbc:mysql://localhost:3306/test_slave
           username: root
@@ -44,66 +46,108 @@ spring:
 
 ## 使用方式
 
-### Entity
+### 定义实体
 
 ```java
 @Data
 @TableName("sys_user")
-public class User {
-    @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
+public class SysUser extends BaseEntity {
     
     private String username;
     private String password;
+    private String nickname;
     private String email;
+    private String phone;
+    private Integer status;
     
-    @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
-    
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
-    
-    @TableLogic
-    private Integer deleted;
+    @Version
+    private Integer version;
 }
 ```
 
-### Mapper
+### 定义 Mapper
 
 ```java
-public interface UserMapper extends BaseMapper<User> {
-    // 自定义方法
+public interface SysUserMapper extends BaseMapper<SysUser> {
 }
 ```
 
-### Service
+### 定义 Service
 
 ```java
+public interface SysUserService extends BaseService<SysUser> {
+    
+    SysUser getByUsername(String username);
+    
+    boolean updatePassword(Long userId, String oldPassword, String newPassword);
+}
+
 @Service
-public class UserService extends ServiceImpl<UserMapper, User> {
+public class SysUserServiceImpl extends BaseServiceImpl<SysUserMapper, SysUser> 
+    implements SysUserService {
     
-    public User getUserById(Long id) {
-        return getById(id);
+    @Override
+    public SysUser getByUsername(String username) {
+        return getOne(new LambdaQueryWrapper<SysUser>()
+            .eq(SysUser::getUsername, username));
     }
     
-    public List<User> listByUsername(String username) {
-        return lambdaQuery()
-            .eq(User::getUsername, username)
-            .list();
-    }
-    
-    public boolean saveUser(User user) {
-        return save(user);
-    }
-    
-    public boolean updateUser(User user) {
+    @Override
+    public boolean updatePassword(Long userId, String oldPassword, String newPassword) {
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        if (!PasswordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new BusinessException("原密码错误");
+        }
+        user.setPassword(PasswordEncoder.encode(newPassword));
         return updateById(user);
     }
-    
-    public boolean deleteUser(Long id) {
-        return removeById(id);
-    }
 }
+```
+
+### 基础 CRUD
+
+```java
+@Autowired
+private SysUserService userService;
+
+// 查询
+SysUser user = userService.getById(1L);
+List<SysUser> list = userService.list();
+IPage<SysUser> page = userService.page(new Page<>(1, 10));
+
+// 新增
+SysUser user = new SysUser();
+user.setUsername("admin");
+userService.save(user);
+
+// 修改
+user.setNickname("管理员");
+userService.updateById(user);
+
+// 删除（逻辑删除）
+userService.removeById(1L);
+```
+
+### 条件查询
+
+```java
+// 简单条件
+List<SysUser> users = userService.list(
+    new LambdaQueryWrapper<SysUser>()
+        .eq(SysUser::getStatus, 1)
+        .like(SysUser::getUsername, "admin")
+        .orderByDesc(SysUser::getCreateTime)
+);
+
+// 分页查询
+IPage<SysUser> page = userService.page(
+    new Page<>(1, 10),
+    new LambdaQueryWrapper<SysUser>()
+        .eq(SysUser::getStatus, 1)
+);
 ```
 
 ## 分布式ID
@@ -114,6 +158,7 @@ public class UserService extends ServiceImpl<UserMapper, User> {
 lingzhi:
   db:
     id:
+      enabled: true
       worker-id: 1
       datacenter-id: 1
 ```
@@ -121,29 +166,26 @@ lingzhi:
 ### 使用
 
 ```java
-// 自动配置，ID 会在插入时自动生成
-userMapper.insert(user);
+// ID 自动生成，插入时无需设置
+SysUser user = new SysUser();
+user.setUsername("admin");
+userService.save(user);  // id 自动生成
 
-// 或手动获取
-long id = IdUtils.getId();
+// 手动获取
+long id = IdUtil.getId();
 ```
 
 ## 乐观锁
 
-### 配置
-
 ```java
+// 实体定义
 @Version
 private Integer version;
-```
 
-### 使用
-
-```java
-// 更新时会自动检查 version
-User user = getById(1);
-user.setUsername("newName");
-updateById(user);  // 如果 version 变化，会抛出异常
+// 更新时自动检查版本
+SysUser user = getById(1L);
+user.setNickname("新名字");
+updateById(user);  // 如果 version 变化，抛出异常
 ```
 
 ## 多数据源
@@ -151,9 +193,9 @@ updateById(user);  // 如果 version 变化，会抛出异常
 ### 切换数据源
 
 ```java
-// 使用 @DS 注解
+// 注解方式
 @DS("slave")
-public List<User> listFromSlave() {
+public List<SysUser> listFromSlave() {
     return list();
 }
 
@@ -172,8 +214,23 @@ try {
 lingzhi:
   db:
     id:
+      enabled: true           # 是否启用分布式ID
       worker-id: 1          # 工作机器ID (0-31)
-      datacenter-id: 1     # 数据中心ID (0-31)
+      datacenter-id: 1      # 数据中心ID (0-31)
+
+# MyBatis Plus 配置
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.lingzhi.**.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 ```
 
 ## 依赖
@@ -181,3 +238,4 @@ lingzhi:
 - lingzhi-core
 - mybatis-plus-spring-boot3-starter
 - dynamic-datasource-spring-boot3-starter
+- mysql-connector-j

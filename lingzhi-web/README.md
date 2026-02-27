@@ -1,14 +1,15 @@
 # lingzhi-web Web 模块
 
-> 参数校验、分页
+> 参数校验、分页、CORS、基础 Controller
 
 ## 模块简介
 
 `lingzhi-web` 提供 Web 开发常用能力：
 
 - **参数校验** - @Valid 注解式校验
-- **分页** - PageHelper 分页
-- **跨域** - CORS 配置
+- **分页** - 通用分页请求/响应
+- **CORS** - 跨域配置
+- **基础 Controller** - 通用 CRUD
 
 ## 快速开始
 
@@ -20,6 +21,37 @@
     <artifactId>lingzhi-web</artifactId>
     <version>1.0.0</version>
 </dependency>
+```
+
+## 分页
+
+### 分页请求
+
+```java
+@PostMapping("/list")
+public Result<PageResult<User>> list(@RequestBody PageRequest request) {
+    LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+    wrapper.like(User::getUsername, request.getKeyword());
+    
+    return page(request, wrapper);
+}
+```
+
+### 响应结构
+
+```json
+{
+  "code": 200,
+  "data": {
+    "list": [],
+    "total": 100,
+    "pageNum": 1,
+    "pageSize": 10,
+    "pages": 10,
+    "hasPrevious": false,
+    "hasNext": true
+  }
+}
 ```
 
 ## 参数校验
@@ -43,6 +75,10 @@ public class UserRequest {
     
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式错误")
     private String phone;
+    
+    @Min(value = 18, message = "年龄最小18岁")
+    @Max(value = 100, message = "年龄最大100岁")
+    private Integer age;
 }
 ```
 
@@ -69,61 +105,70 @@ public Result<Void> createUser(@Valid @RequestBody UserRequest request) {
 | @Email | 邮箱格式 |
 | @Pattern | 正则表达式 |
 | @Valid | 嵌套校验 |
+| @DecimalMin / @DecimalMax | BigDecimal 范围 |
 
-## 分页
-
-### 使用方式
-
-```java
-@GetMapping("/users")
-public Result<PageResult<User>> listUsers(
-        @RequestParam(defaultValue = "1") Integer pageNum,
-        @RequestParam(defaultValue = "10") Integer pageSize) {
-    
-    IPage<User> page = userService.page(
-        new Page<>(pageNum, pageSize),
-        new QueryWrapper<User>()
-    );
-    
-    return Result.success(PageResult.of(page));
-}
-```
-
-### PageResult
+## 基础 Controller
 
 ```java
-@Data
-public class PageResult<T> {
-    private List<T> list;
-    private Long total;
-    private Integer pageNum;
-    private Integer pageSize;
-    private Integer pages;
+@RestController
+@RequestMapping("/user")
+public class UserController extends BaseController<UserService, User> {
+
+    @Override
+    protected UserService getService() {
+        return userService;
+    }
+
+    @PostMapping
+    public Result<Void> add(@RequestBody User user) {
+        return super.add(user);
+    }
+
+    @PutMapping
+    public Result<Void> update(@RequestBody User user) {
+        return super.update(user);
+    }
+
+    @DeleteMapping("/{id}")
+    public Result<Void> delete(@PathVariable Long id) {
+        return super.delete(id);
+    }
+
+    @GetMapping("/{id}")
+    public Result<User> get(@PathVariable Long id) {
+        return super.get(id);
+    }
+
+    @PostMapping("/page")
+    public Result<PageResult<User>> page(@RequestBody PageRequest request) {
+        return super.page(request);
+    }
 }
 ```
 
 ## CORS 配置
-
-自动配置跨域，支持：
-
-- 所有接口
-- 自定义源
-- Cookie 支持
 
 ```yaml
 lingzhi:
   web:
     cors:
       enabled: true
-      allowed-origins: "*"
-      allowed-methods: GET,POST,PUT,DELETE
-      allowed-headers: "*"
-      allow-credentials: false
-      max-age: 3600
+```
+
+## 配置项
+
+```yaml
+lingzhi:
+  web:
+    cors:
+      enabled: true                    # 是否启用
+    validation:
+      enabled: true                   # 是否启用参数校验
 ```
 
 ## 依赖
 
 - lingzhi-core
+- lingzhi-db
 - spring-boot-starter-web
 - hibernate-validator
