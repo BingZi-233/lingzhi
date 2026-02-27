@@ -71,7 +71,7 @@
         <knife4j.version>4.5.0</knife4j.version>
 
         <!-- 文件处理 -->
-        <minio.version>8.5.14</minio.version>
+        <minio.version>8.6.0</minio.version>
         <aliyun-oss.version>3.18.1</aliyun-oss.version>
 
         <!-- Excel -->
