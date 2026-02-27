@@ -1,0 +1,8 @@
+# 灵芝脚手架配置示例
+lingzhi:
+  enabled: true
+
+# Spring Boot 配置
+spring:
+  application:
+    name: lingzhi-demo

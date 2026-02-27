@@ -1,0 +1,23 @@
+# 灵芝异步任务配置
+lingzhi:
+  async:
+    enabled: true
+    thread-pool:
+      # 核心线程数
+      core-pool-size: 10
+      # 最大线程数
+      max-pool-size: 50
+      # 队列容量
+      queue-capacity: 200
+      # 线程名前缀
+      thread-name-prefix: "lingzhi-async-"
+      # 空闲线程存活时间
+      keep-alive-time: 60
+      # 是否允许核心线程超时
+      allow-core-thread-time-out: false
+      # 拒绝策略
+      rejected-policy: CALLER_RUNS
+      # 等待任务完成
+      wait-for-tasks-to-complete-on-shutdown: true
+      # 等待时间
+      await-termination-seconds: 60
