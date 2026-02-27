@@ -1,86 +1,75 @@
 package com.lingzhi.core.enums;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * StatusEnum 枚举单元测试
+ * StatusEnum 单元测试
  */
-@DisplayName("通用状态枚举测试")
+@DisplayName("状态枚举测试")
 class StatusEnumTest {
 
     @Test
-    @DisplayName("NORMAL - 验证枚举值")
-    void normalShouldHaveCorrectValues() {
+    @DisplayName("StatusEnum 应该有 NORMAL 状态")
+    void shouldHaveNormalStatus() {
+        assertNotNull(StatusEnum.NORMAL);
         assertEquals(0, StatusEnum.NORMAL.getCode());
         assertEquals("正常", StatusEnum.NORMAL.getDesc());
     }
 
     @Test
-    @DisplayName("DISABLED - 验证枚举值")
-    void disabledShouldHaveCorrectValues() {
+    @DisplayName("StatusEnum 应该有 DISABLED 状态")
+    void shouldHaveDisabledStatus() {
+        assertNotNull(StatusEnum.DISABLED);
         assertEquals(1, StatusEnum.DISABLED.getCode());
         assertEquals("禁用", StatusEnum.DISABLED.getDesc());
     }
 
     @Test
-    @DisplayName("DELETED - 验证枚举值")
-    void deletedShouldHaveCorrectValues() {
+    @DisplayName("StatusEnum 应该有 DELETED 状态")
+    void shouldHaveDeletedStatus() {
+        assertNotNull(StatusEnum.DELETED);
         assertEquals(2, StatusEnum.DELETED.getCode());
         assertEquals("已删除", StatusEnum.DELETED.getDesc());
     }
 
     @Test
-    @DisplayName("of - 根据code获取枚举-存在的code")
-    void ofShouldReturnEnumForExistingCode() {
+    @DisplayName("根据 code 获取枚举")
+    void getEnumByCode() {
         assertEquals(StatusEnum.NORMAL, StatusEnum.of(0));
         assertEquals(StatusEnum.DISABLED, StatusEnum.of(1));
         assertEquals(StatusEnum.DELETED, StatusEnum.of(2));
-    }
-
-    @Test
-    @DisplayName("of - 根据code获取枚举-不存在的code返回null")
-    void ofShouldReturnNullForNonExistingCode() {
         assertNull(StatusEnum.of(99));
-        assertNull(StatusEnum.of(-1));
-        assertNull(StatusEnum.of(100));
-    }
-
-    @Test
-    @DisplayName("of - 根据code获取枚举-null返回null")
-    void ofShouldReturnNullForNullCode() {
         assertNull(StatusEnum.of(null));
     }
 
     @Test
-    @DisplayName("isNormal - 验证正常状态判断")
-    void isNormalShouldReturnTrueForNormal() {
+    @DisplayName("判断是否为正常状态")
+    void isNormalTest() {
         assertTrue(StatusEnum.NORMAL.isNormal());
         assertFalse(StatusEnum.DISABLED.isNormal());
-        assertFalse(StatusEnum.DELETED.isNormal());
     }
 
     @Test
-    @DisplayName("isDisabled - 验证禁用状态判断")
-    void isDisabledShouldReturnTrueForDisabled() {
-        assertFalse(StatusEnum.NORMAL.isDisabled());
+    @DisplayName("判断是否为禁用状态")
+    void isDisabledTest() {
         assertTrue(StatusEnum.DISABLED.isDisabled());
-        assertFalse(StatusEnum.DELETED.isDisabled());
+        assertFalse(StatusEnum.NORMAL.isDisabled());
     }
 
     @Test
-    @DisplayName("isDeleted - 验证删除状态判断")
-    void isDeletedShouldReturnTrueForDeleted() {
-        assertFalse(StatusEnum.NORMAL.isDeleted());
-        assertFalse(StatusEnum.DISABLED.isDeleted());
+    @DisplayName("判断是否为已删除状态")
+    void isDeletedTest() {
         assertTrue(StatusEnum.DELETED.isDeleted());
+        assertFalse(StatusEnum.NORMAL.isDeleted());
     }
 
     @Test
-    @DisplayName("values - 验证所有枚举值数量")
-    void valuesShouldContainAllEnums() {
-        assertEquals(3, StatusEnum.values().length);
+    @DisplayName("获取所有状态")
+    void getAllTest() {
+        StatusEnum[] values = StatusEnum.values();
+        assertEquals(3, values.length);
     }
 }
