@@ -1,0 +1,15 @@
+# 异步任务配置
+lingzhi:
+  async:
+    enabled: true
+    # 线程池配置
+    thread-pool:
+      core-pool-size: 8
+      max-pool-size: 16
+      queue-capacity: 200
+      thread-name-prefix: lingzhi-async-
+      keep-alive-time: 60
+      allow-core-thread-time-out: false
+      rejected-policy: CALLER_RUNS
+      wait-for-tasks-to-complete-on-shutdown: true
+      await-termination-seconds: 60

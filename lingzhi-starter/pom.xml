@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.lingzhi</groupId>
+        <artifactId>lingzhi</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>lingzhi-starter</artifactId>
+    <packaging>jar</packaging>
+    <name>Lingzhi Starter</name>
+    <description>自动装配入口</description>
+
+    <dependencies>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- 引入所有模块 -->
+        <dependency>
+            <groupId>com.lingzhi</groupId>
+            <artifactId>lingzhi-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lingzhi</groupId>
+            <artifactId>lingzhi-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lingzhi</groupId>
+            <artifactId>lingzhi-async</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lingzhi</groupId>
+            <artifactId>lingzhi-scheduler</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lingzhi</groupId>
+            <artifactId>lingzhi-db</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lingzhi</groupId>
+            <artifactId>lingzhi-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lingzhi</groupId>
+            <artifactId>lingzhi-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lingzhi</groupId>
+            <artifactId>lingzhi-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lingzhi</groupId>
+            <artifactId>lingzhi-api</artifactId>
+        </dependency>
+    </dependencies>
+</project>
