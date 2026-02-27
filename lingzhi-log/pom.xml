@@ -20,10 +20,13 @@
             <artifactId>lingzhi-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.lingzhi</groupId>
+            <artifactId>lingzhi-security</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aspectj</artifactId>
+            <artifactId>spring-boot-starter-aop</artifactId>
             <version>${spring-boot.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
